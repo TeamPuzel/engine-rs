@@ -1,0 +1,1 @@
+cargo run --release --manifest-path=server/Cargo.toml

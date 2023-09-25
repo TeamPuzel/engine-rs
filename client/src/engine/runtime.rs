@@ -1,33 +1,54 @@
 use core::panic::*;
+use core::alloc::GlobalAlloc;
+use alloc::boxed::Box;
+
 use super::types::{Color, RGB, Input};
-use super::Renderer;
+use super::{Renderer, Game};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! { loop {} }
 
-extern {
-    fn draw(buf: *const u8);
-    fn random() -> f32;
+static mut HEAP: [u8; 2_000_000] = [0; 2_000_000];
+static mut OFFSET: usize = 0;
+struct FixedBufferAlloc;
+unsafe impl GlobalAlloc for FixedBufferAlloc {
+    unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
+        let ptr = HEAP.as_mut_ptr().add(OFFSET);
+        OFFSET += layout.size();
+        return ptr;
+    }
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
+        // :)
+    }
 }
 
-pub type FrameFn = fn(&Renderer, &Input) -> ();
+#[global_allocator]
+static ALLOC: FixedBufferAlloc = FixedBufferAlloc;
+
+extern {
+    fn draw(buf: *const u8);
+    pub fn random() -> f32;
+    pub fn randomInRange(min: u32, max: u32) -> u32;
+}
 
 static mut DISPLAY: [[RGB; 128]; 128] = [[Color::Black.rgb(); 128]; 128];
 pub static mut INPUT: Input = Input::new();
-pub static mut FRAME_FN: Option<FrameFn> = None;
+pub static mut STATE: Option<Box<dyn Game>> = None;
 static mut RENDERER: Renderer = Renderer;
-
-pub unsafe fn pixel(x: u8, y: u8, color: Color) {
-    DISPLAY[y as usize][x as usize] = color.rgb();
-}
 
 pub unsafe fn clear(color: Color) {
     DISPLAY = [[color.rgb(); 128]; 128];
 }
 
+pub unsafe fn pixel(x: u8, y: u8, color: Color) {
+    if x < 128 && y < 128 {
+        DISPLAY[y as usize][x as usize] = color.rgb();
+    }
+}
+
 #[no_mangle]
 unsafe extern fn frame() {
-    FRAME_FN.unwrap()(&RENDERER, &INPUT);
+    STATE.as_mut().unwrap().frame(&mut RENDERER, &INPUT);
     draw(DISPLAY.as_ptr() as *const u8)
 }
 

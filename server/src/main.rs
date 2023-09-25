@@ -1,6 +1,9 @@
 use std::net;
 use std::io::{Read, Write};
 use std::fs;
+use std::process;
+
+const BUILD: &str = "cd ./client; cargo build --release; cd ..; mv ./client/target/wasm32-unknown-unknown/release/dungeons.wasm ./content/client.wasm";
 
 fn main() {
     let socket = net::TcpListener::bind("127.0.0.1:8080").unwrap();
@@ -13,6 +16,13 @@ fn main() {
         if !msg.is_empty() {
             let mut path = msg.split(' ').collect::<Vec<&str>>()[1];
             if path == "/" { path = "/main.html" }
+            if path == "/client.wasm" {
+                process::Command::new("/bin/bash")
+                    .arg("-c")
+                    .arg(format!("{BUILD}"))
+                    .output()
+                    .unwrap();
+            }
             
             if let Ok(file) = fs::read(format!("./content{path}")) {
                 let content_type = match path.split('.').collect::<Vec<&str>>()[1] {
