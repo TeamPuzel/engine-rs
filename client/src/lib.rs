@@ -2,6 +2,7 @@
 #![allow(unused, dead_code)]
 extern crate alloc;
 mod engine;
+mod sprites;
 use alloc::vec::Vec;
 use engine::{Renderer, Game, random};
 use engine::types::{Input, Color};
@@ -22,12 +23,18 @@ struct State {
 
 impl Default for State {
     fn default() -> Self {
-        Self {
+        let mut buf = Self {
             layer1: Vec::with_capacity(136),
             layer2: Vec::with_capacity(136),
             layer3: Vec::with_capacity(136),
             tick: 0
+        };
+        for _ in 0..512 {
+            advance_stars(&mut buf.layer1, 1.0);
+            advance_stars(&mut buf.layer2, 0.75);
+            advance_stars(&mut buf.layer3, 0.5);
         }
+        return buf
     }
 }
 
@@ -59,7 +66,7 @@ impl Game for State {
         advance_stars(&mut self.layer2, 0.75);
         advance_stars(&mut self.layer3, 0.5);
         
-        draw_stars(renderer, &mut self.layer1, Color::LightGray);
+        draw_stars(renderer, &mut self.layer1, Color::White);
         draw_stars(renderer, &mut self.layer2, Color::Blue);
         draw_stars(renderer, &mut self.layer3, Color::DarkBlue);
         

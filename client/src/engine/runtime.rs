@@ -17,7 +17,7 @@ unsafe impl GlobalAlloc for FixedBufferAlloc {
         OFFSET += layout.size();
         return ptr;
     }
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
+    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: core::alloc::Layout) {
         // :)
     }
 }

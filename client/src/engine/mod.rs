@@ -36,8 +36,8 @@ impl Renderer {
         }
     }
     pub fn sprite(&mut self, x: u8, y: u8, data: &Sprite) {
-        for (sx, column) in data.iter().enumerate() {
-            for (sy, pixel) in column.iter().enumerate() {
+        for (sy, column) in data.iter().enumerate() {
+            for (sx, pixel) in column.iter().enumerate() {
                 self.pixel(x + sx as u8, y + sy as u8, *pixel)
             }
         }
