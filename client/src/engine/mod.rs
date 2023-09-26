@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 mod runtime;
+mod font;
 pub mod types;
-use core::ops::Range;
+use core::{ops::Range, borrow::BorrowMut};
 
 use alloc::boxed::Box;
 
@@ -39,6 +40,29 @@ impl Renderer {
         for (sy, column) in data.iter().enumerate() {
             for (sx, pixel) in column.iter().enumerate() {
                 self.pixel(x + sx as u8, y + sy as u8, *pixel)
+            }
+        }
+    }
+    pub fn text(&mut self, str: &str, x: u8, y: u8, foreground: Color, background: Option<Color>, wrap: bool) {
+        let symbols = str.chars().flat_map(|e| font::symbol_from_char(e));
+        for (off, sym) in symbols.enumerate() {
+            if x as usize + (4 * off) < 128 {
+                self.symbol(sym, x + (off * 4) as u8, y, foreground, background);
+            } else if wrap {
+                self.text(&str[off..], 1, y + 6, foreground, background, wrap);
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+    fn symbol(&mut self, sym: &font::Symbol, x: u8, y: u8, foreground: Color, background: Option<Color>) {
+        if let Some(bgc) = background {
+            self.rectangle(x - 1, y - 1, 5, 7, bgc, true);
+        }
+        for (sy, column) in sym.iter().enumerate() {
+            for (sx, flag) in column.iter().enumerate() {
+                if *flag { self.pixel(x + sx as u8, y + sy as u8, foreground) }
             }
         }
     }

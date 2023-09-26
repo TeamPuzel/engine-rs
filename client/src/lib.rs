@@ -21,6 +21,10 @@ struct State {
     tick: usize
 }
 
+const L1_SPEED: f32 = 0.75;
+const L2_SPEED: f32 = 0.5;
+const L3_SPEED: f32 = 0.25;
+
 impl Default for State {
     fn default() -> Self {
         let mut buf = Self {
@@ -30,9 +34,9 @@ impl Default for State {
             tick: 0
         };
         for _ in 0..512 {
-            advance_stars(&mut buf.layer1, 1.0);
-            advance_stars(&mut buf.layer2, 0.75);
-            advance_stars(&mut buf.layer3, 0.5);
+            advance_stars(&mut buf.layer1, L1_SPEED);
+            advance_stars(&mut buf.layer2, L2_SPEED);
+            advance_stars(&mut buf.layer3, L3_SPEED);
         }
         return buf
     }
@@ -52,7 +56,7 @@ fn advance_stars(stars: &mut Vec<Position>, by: f32) {
 
 fn draw_stars(renderer: &mut Renderer, stars: &Vec<Position>, color: Color) {
     for star in stars { 
-        if random(0..10) < 6 {
+        if random(0..100) < 50 {
             renderer.pixel(star.x as u8, star.y as u8, color)
         }
     }
@@ -62,13 +66,15 @@ impl Game for State {
     fn frame(&mut self, renderer: &mut Renderer, input: &Input) {
         renderer.clear();
         
-        advance_stars(&mut self.layer1, 1.0);
-        advance_stars(&mut self.layer2, 0.75);
-        advance_stars(&mut self.layer3, 0.5);
+        advance_stars(&mut self.layer1, L1_SPEED);
+        advance_stars(&mut self.layer2, L2_SPEED);
+        advance_stars(&mut self.layer3, L3_SPEED);
         
         draw_stars(renderer, &mut self.layer1, Color::White);
         draw_stars(renderer, &mut self.layer2, Color::Blue);
         draw_stars(renderer, &mut self.layer3, Color::DarkBlue);
+        
+        renderer.text("Hello, world!", 40, 60, Color::White, None, false);
         
         self.tick += 1;
     }
