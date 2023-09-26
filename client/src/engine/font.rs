@@ -1,5 +1,3 @@
-use core::f32::MIN;
-
 
 pub type Symbol = [[bool; 3]; 5];
 

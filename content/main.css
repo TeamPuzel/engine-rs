@@ -39,7 +39,7 @@ html, body {
     height: 100vh;
     width: 100vw;
     font-family: JetBrains Mono;
-    background-color: var(--pal-dark);
+    background-color: var(--pal-black);
     color: var(--pal-white);
 }
 

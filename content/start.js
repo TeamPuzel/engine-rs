@@ -8,6 +8,11 @@ let context = null
 /** @type WebGLTexture | null */
 let displayTexture = null
 
+/** @type number */
+let displayWidth = 0
+/** @type number */
+let displayHeight = 0
+
 /** 
  * @param { string } code
  * @returns { number | null }
@@ -39,6 +44,11 @@ async function main() {
         { env }
     )
     
+    wasm.instance.exports.main()
+    
+    displayWidth = wasm.instance.exports.display_width()
+    displayHeight = wasm.instance.exports.display_height()
+    
     window.addEventListener("keydown", (e) => {
         if (parseKey(e.code) != null)
             wasm.instance.exports.key_down(parseKey(e.code))
@@ -55,6 +65,11 @@ async function main() {
 async function run() {
     /** @type HTMLCanvasElement */
     const surface = document.getElementById("surface")
+    surface.width = displayWidth * 8
+    surface.height = displayHeight * 8
+    surface.style.width = displayWidth * 4 + "px"
+    surface.style.height = displayHeight * 4 + "px"
+    
     context = surface.getContext("webgl")
     if (!context) { console.error("Could not create context."); return }
     
@@ -120,7 +135,6 @@ async function run() {
     
     context.useProgram(shader)
     
-    wasm.instance.exports.main()
     loop()
 }
 
@@ -197,18 +211,19 @@ function createShader(context) {
 const env = {
     draw,
     random,
-    randomInRange
+    randomInRange,
+    panicHandler
 }
 
 function draw(buf) {
     const array = new Uint8Array(
         wasm.instance.exports.memory.buffer,
-        buf, 128 * 128 * 3
+        buf, displayWidth * displayHeight * 3
     )
     
     context.texImage2D(
         context.TEXTURE_2D, 0,
-        context.RGB, 128, 128, 0, context.RGB, context.UNSIGNED_BYTE,
+        context.RGB, displayWidth, displayHeight, 0, context.RGB, context.UNSIGNED_BYTE,
         array
     )
     
@@ -225,3 +240,17 @@ function randomInRange(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function panicHandler(pointer, length) {
+    console.error("WASM PANIC", decodeString(pointer, length))
+    throw "PANIC"
+}
+
+function decodeString(pointer, length) {
+    const slice = new Uint8Array(
+        wasm.instance.exports.memory.buffer,
+        pointer,
+        length
+    )
+    return new TextDecoder().decode(slice);
+};
