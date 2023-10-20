@@ -7,3 +7,7 @@ but is currently impossible to port to the web due to the language's dependency 
 
 I'd like to write it in Mojo but it will probably take at least half a year until the language has enough features.
 I'll wait to see which of the languages will be usable sooner.
+
+Currently a star rendering demo is implemented as an example.
+
+https://github.com/TeamPuzel/engine-rs/assets/94306330/6edd91b4-f5fa-49db-b132-412470e6eb75
